@@ -2,14 +2,16 @@
 #define __BOARD_H__
 
 #include <bitset>
+#include <vector>
 #include "common.h"
+#define INF 1 << 30
 using namespace std;
 
 class Board {
    
 private:
     bitset<64> black;
-    bitset<64> taken;    
+    bitset<64> taken;
        
     bool occupied(int x, int y);
     bool get(Side side, int x, int y);
@@ -28,7 +30,8 @@ public:
     int count(Side side);
     int countBlack();
     int countWhite();
-
+    int score(Side side);
+    vector<Move *> possibleMoves(Side side);
     void setBoard(char data[]);
 };
 
