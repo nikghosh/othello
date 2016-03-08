@@ -29,7 +29,7 @@ void Player::setBoard(Board *b) {
 }
 
 int Player::minimax(Board *b, int depth, bool max_player) {
-    if(depth == 0)
+    if(depth == 0 || b->isDone())
         return b->score(side);
 
     int best_score;
