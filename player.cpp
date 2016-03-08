@@ -86,7 +86,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
      for(int i = 0; i < moves.size(); i++) {
         Board *next = board->copy();
         next->doMove(moves[i], side);
-        int s = minimax(next, 3, false);
+        int s = minimax(next, 1, false);
         if(i == 0)
             max_score = s;
         else if(s > max_score) {
