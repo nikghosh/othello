@@ -14,7 +14,7 @@ Player::Player(Side side) {
      * 30 seconds.
      */
     this->side = side;
-    opp_side = (side == WHITE) ? BLACK : WHITE;
+    opp_side = (Side) !side;
     board = new Board();
 }
 
@@ -28,11 +28,46 @@ void Player::setBoard(Board *b) {
     board = b;
 }
 
-int Player::minimax(Board *b, int depth, bool max_player) {
+double Player::alphabeta(Board *b, int depth, double alpha, double beta, bool max_player) {
     if(depth == 0 || b->isDone())
         return b->score(side);
 
-    int best_score;
+    double v;
+    if(max_player) {
+        v = -INF;
+        vector<Move *> moves = b->possibleMoves(side);
+        for(auto &m : moves) {
+            Board *child = b->copy();
+            child->doMove(m, side);
+            v = max(v, alphabeta(child, depth - 1, alpha, beta, false));
+            alpha = max(alpha, v);
+            if(beta <= alpha)
+                break;
+        }
+        
+        return v;
+    }
+    else {
+        v = INF;
+        vector<Move *> moves = b->possibleMoves(opp_side);
+        for(auto &m : moves) {
+            Board *child = b->copy();
+            child->doMove(m, opp_side);
+            v = min(v, alphabeta(child, depth - 1, alpha, beta, true));
+            beta = min(beta, v);
+            if(beta <= alpha)
+                break;
+        }
+        
+        return v;
+    }
+}
+
+double Player::minimax(Board *b, int depth, bool max_player) {
+    if(depth == 0 || b->isDone())
+        return b->score(side);
+
+    double best_score;
 
     if(max_player) {
         best_score = -INF;
@@ -40,7 +75,7 @@ int Player::minimax(Board *b, int depth, bool max_player) {
         for(auto &m : moves) {
             Board *child = b->copy();
             child->doMove(m, side);
-            int v = minimax(child, depth - 1, false);
+            double v = minimax(child, depth - 1, false);
             best_score = max(best_score, v);
         }
     }
@@ -50,7 +85,7 @@ int Player::minimax(Board *b, int depth, bool max_player) {
         for(auto &m : moves) {
             Board *child = b->copy();
             child->doMove(m, opp_side);
-            int v = minimax(child, depth - 1, true);
+            double v = minimax(child, depth - 1, true);
             best_score = min(best_score, v);
         }
     }
@@ -75,18 +110,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
      * TODO: Implement how moves your AI should play here. You should first
      * process the opponent's opponents move before calculating your own move
      */ 
-    
     board->doMove(opponentsMove, opp_side);
     vector<Move *> moves = board->possibleMoves(side);
     if(moves.empty())
         return NULL;
 
-    int max_score, best_move = 0;
+    double max_score, best_move = 0;
 
      for(int i = 0; i < moves.size(); i++) {
         Board *next = board->copy();
         next->doMove(moves[i], side);
-        int s = minimax(next, 1, false);
+        int s = alphabeta(next, 6, -INF, INF, false);
         if(i == 0)
             max_score = s;
         else if(s > max_score) {

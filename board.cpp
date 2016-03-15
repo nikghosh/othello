@@ -10,6 +10,10 @@ Board::Board() {
     taken.set(4 + 8 * 4);
     black.set(4 + 8 * 3);
     black.set(3 + 8 * 4);
+    corners.set(0);
+    corners.set(7);
+    corners.set(8 * 7);
+    corners.set(7 + 8 * 7);
 }
 
 /*
@@ -162,9 +166,32 @@ int Board::countWhite() {
     return taken.count() - black.count();
 }
 
-int Board::score(Side side) {
-    int diff = countWhite() - countBlack();
-    return (side == WHITE) ? diff : -diff;
+int Board::countBlackCorners() {
+    return (corners & black).count();
+}
+
+int Board::countWhiteCorners() {
+    return (corners & taken).count() - (corners & black).count();
+}
+
+double Board::score(Side side) {
+    Side opp_side = (Side) !side;
+    vector<Move *> max_player = possibleMoves(side);
+    vector<Move *> min_player = possibleMoves(opp_side);
+
+    int mobility, parity, corner;
+
+    int max_moves = max_player.size(), min_moves = min_player.size();
+    mobility = (max_moves + min_moves > 0) ? (max_moves - min_moves) / (max_moves + min_moves) : 0;
+
+    int diff_pieces = countWhite() - countBlack(), sum_pieces = countWhite() + countBlack();
+    parity = (side == WHITE) ? diff_pieces / sum_pieces : -diff_pieces / sum_pieces;
+
+    int diff_corners = countWhiteCorners() - countBlackCorners();
+    corner = (side == WHITE) ? diff_corners : -diff_corners;
+
+    return parity + 3 * corner + mobility;
+
 }
 
 vector<Move *> Board::possibleMoves(Side side) {
